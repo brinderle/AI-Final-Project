@@ -32,7 +32,7 @@ agent_hosts[0].addOptionalFlag( "debug,d", "Display debug information.")
 ################################################
 # changed this int number of agents from 2 to 4
 agent_hosts[0].addOptionalIntArgument("agents,n", "Number of agents to use, including observer.", 4)
-agent_hosts[0].addOptionalStringArgument("map,m", "Name of map to be used", "openClassic")
+agent_hosts[0].addOptionalStringArgument("map,m", "Name of map to be used", "openClassicMulti")
 
 try:
     agent_hosts[0].parse( sys.argv )
@@ -275,7 +275,7 @@ def getXML(reset):
                 </AgentHandlers>
               </AgentSection>
               <AgentSection mode="Survival">
-                <Name>Enemy</Name>
+                <Name>Enemy2</Name>
                 <AgentStart> 
                 '''   + GenEnemy2Start(fStart['x'], fStart['z']) +  ''' 
                 <Inventory>''' + invMake() + '''</Inventory>
@@ -296,7 +296,7 @@ def getXML(reset):
                 </AgentHandlers>
               </AgentSection>
               <AgentSection mode="Survival">
-                <Name>Enemy</Name>
+                <Name>Goal</Name>
                 <AgentStart> 
                 '''   + GenGoalStart(gStart['x'], gStart['z']) +  ''' 
                 <Inventory>''' + invMake() + '''</Inventory>
@@ -333,7 +333,7 @@ experimentID = str(uuid.uuid4())
 
 for i in range(len(agent_hosts)):
     safeStartMission(agent_hosts[i], my_mission, client_pool, MalmoPython.MissionRecordSpec(), i, experimentID)
-
+    time.sleep(2)
 safeWaitForStart(agent_hosts)
 
 time.sleep(1)
@@ -362,7 +362,10 @@ while not timed_out and food:
                 current_pos[i] = (ob[u'XPos'], ob[u'ZPos'])
                 print("First pos ", current_pos[i])
                 #print(current_pos[i])
-            if ob['Name'] == 'Enemy':
+            ########################################
+            # I added Enemy2 as an option
+            #######################################
+            if ob['Name'] == 'Enemy' or ob['Name'] == 'Enemy2':
                 print('enemy moving:')
                 reflex.enemyAgentMoveRand(ah, world_state)
                 ah = agent_hosts[i]
