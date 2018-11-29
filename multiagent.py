@@ -365,9 +365,13 @@ while not timed_out and food:
             ########################################
             # I added Enemy2 as an option
             #######################################
-            if ob['Name'] == 'Enemy' or ob['Name'] == 'Enemy2':
-                print('enemy moving:')
-                reflex.enemyAgentMoveRand(ah, world_state)
+            if ob['Name'] == 'Enemy':
+                print('Enemy moving:')
+                ###########################
+                # changed the enemy movement function here
+                ##########################
+                # reflex.enemyAgentMoveRand(ah, world_state)
+                reflex.enemyAgentMoveWithProb(ah, world_state, (pCurr['x'], pCurr['z']), current_pos[1])
                 ah = agent_hosts[i]
                 world_state = ah.getWorldState()
                 if world_state.is_mission_running and world_state.number_of_observations_since_last_state > 0:
@@ -382,13 +386,83 @@ while not timed_out and food:
                     g_score -= 100
                     timed_out = True
                     break
-                time.sleep(0.1)
-            if ob['Name'] == 'Player':
-                if (current_pos[i] == (eCurr['x'], eCurr['z'])):
-                    g_score -= 100
+                ##############################
+                # added this section to make the agent stop moving if other agents were touching
+                ##############################
+                if ((fCurr['x'], fCurr['z']) == (pCurr['x'], pCurr['z']) or (pCurr['x'], pCurr['z']) == (gCurr['x'], gCurr['z'])):
                     timed_out = True
                     break
 
+                time.sleep(0.1)
+            if ob['Name'] == 'Enemy2':
+                print('Enemy2 moving:')
+                ###########################
+                # changed the enemy movement function here
+                ##########################
+                # reflex.enemyAgentMoveRand(ah, world_state)
+                reflex.enemyAgentMoveWithProb(ah, world_state, (pCurr['x'], pCurr['z']), current_pos[2])
+                ah = agent_hosts[i]
+                world_state = ah.getWorldState()
+                if world_state.is_mission_running and world_state.number_of_observations_since_last_state > 0:
+                    msg = world_state.observations[-1].text
+                    ob = json.loads(msg)
+                if "XPos" in ob and "ZPos" in ob:
+                    current_pos[i] = (ob[u'XPos'], ob[u'ZPos'])
+                    print("Second pos ", current_pos[i])
+                fCurr['x'] = current_pos[i][0]
+                fCurr['z'] = current_pos[i][1]
+                if (current_pos[i] == (pCurr['x'], pCurr['z'])):
+                    g_score -= 100
+                    timed_out = True
+                    break
+                ##############################
+                # added this section to make the agent stop moving if other agents were touching
+                ##############################
+                if ((eCurr['x'], eCurr['z']) == (pCurr['x'], pCurr['z']) or (pCurr['x'], pCurr['z']) == (gCurr['x'], gCurr['z'])):
+                    timed_out = True
+                    break
+
+                time.sleep(0.1)
+            if ob['Name'] == 'Goal':
+                print('Goal moving:')
+                reflex.goalAgentMoveRand(ah, world_state)
+                ah = agent_hosts[i]
+                world_state = ah.getWorldState()
+                if world_state.is_mission_running and world_state.number_of_observations_since_last_state > 0:
+                    msg = world_state.observations[-1].text
+                    ob = json.loads(msg)
+                if "XPos" in ob and "ZPos" in ob:
+                    current_pos[i] = (ob[u'XPos'], ob[u'ZPos'])
+                    print("Second pos ", current_pos[i])
+                fCurr['x'] = current_pos[i][0]
+                fCurr['z'] = current_pos[i][1]
+                if (current_pos[i] == (pCurr['x'], pCurr['z'])):
+                    g_score = 100
+                    timed_out = True
+                    break
+                ##############################
+                # added this section to make the agent stop moving if other agents were touching
+                ##############################
+                if ((eCurr['x'], eCurr['z']) == (pCurr['x'], pCurr['z']) or (pCurr['x'], pCurr['z']) == (fCurr['x'], fCurr['z'])):
+                    timed_out = True
+                    break
+
+                time.sleep(0.1)
+            if ob['Name'] == 'Player':
+                ##################################
+                # updated this to stop when it touches either enemy
+                ###################################
+                if (current_pos[i] == (eCurr['x'], eCurr['z'])) or (current_pos[i] == (fCurr['x'], fCurr['z'])):
+                    g_score -= 100
+                    timed_out = True
+                    break
+                ##################################
+                # added this section to stop if the enemy touches the goal agent
+                ##################################
+                elif (current_pos[i] == (gCurr['x'], gCurr['z'])):
+                    g_score += 100
+                    timed_out = True
+                    break
                 print('agent moving')
                 reflex.reflexAgentMove(ah, current_pos[i], world_state, food, (eCurr['x'], eCurr['z']))
                 ah = agent_hosts[i]
