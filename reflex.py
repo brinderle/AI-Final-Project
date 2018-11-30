@@ -227,3 +227,78 @@ def enemyAgentMoveRand(agent, ws):
 
     elif togo == "back":
         moveBack(agent)
+
+def enemyAgentMoveWithProb(agent, ws, player_pos, pos):
+    time.sleep(0.1)
+    illegalgrid = illegalMoves(ws)
+    legalLST = ["right", "left", "forward", "back"]
+    for x in illegalgrid:
+        if x in legalLST:
+            legalLST.remove(x)
+    y = randint(0,len(legalLST)-1)
+
+    # get a random number between 0 and 1
+    probTowardsPlayer = .4
+    z = random()
+    if z < probTowardsPlayer:
+        legalScores = []
+        # change the position depending on the direction of the move
+        for move in legalLST:
+            if move == "left":
+                newPosition = [pos[0] + 1, pos[1]]
+            elif move == "right":
+                newPosition = [pos[0] - 1, pos[1]]
+            elif move == "back":
+                newPosition = [pos[0], pos[1] - 1]
+            else: # forward
+                newPosition = [pos[0], pos[1] + 1]
+            score = manhattan_distance(newPosition, player_pos)
+            legalScores.append(score)
+
+        # find the best score or min distance, randomly choose a move with the best score if there are multiple
+        minDistance = 10000000000
+        bestMoves = []
+        for i in range(0, len(legalLST)):
+            if legalScores[i] < minDistance:
+                minDistance = legalScores[i]
+                bestMoves = [legalLST[i]]
+            elif legalScores[i] == minDistance:
+                bestMoves.append(legalLST[i])
+
+        randomBestIndex = randint(0,len(bestMoves)-1)
+        togo = bestMoves[randomBestIndex]
+    else:
+        togo = legalLST[y]
+
+    if togo == "right":
+        moveRight(agent)
+
+    elif togo == "left":
+        moveLeft(agent)
+
+    elif togo == "forward":
+        moveStraight(agent)
+
+    elif togo == "back":
+        moveBack(agent)
+
+def goalAgentMoveRand(agent, ws):
+    time.sleep(0.1)
+    illegalgrid = illegalMoves(ws)
+    legalLST = ["right", "left", "forward", "back"]
+    for x in illegalgrid:
+        if x in legalLST:
+            legalLST.remove(x)
+    y = randint(0,len(legalLST)-1)
+    togo = legalLST[y]
+    if togo == "right":
+        moveRight(agent)
+
+    elif togo == "left":
+        moveLeft(agent)
+
+    elif togo == "forward":
+        moveStraight(agent)
+
+    elif togo == "back":
+        moveBack(agent)
