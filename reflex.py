@@ -82,6 +82,69 @@ def evalfuncReflex(pos, enemy_pos, dest_blocks):
     print(str(len(dest_blocks)) + " food remaining")
     return score
 
+def evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks):
+    print(str(goal_pos[0]) + ", " + str(goal_pos[1]))
+    temp_food = dest_blocks.copy()
+
+    in_food = 0
+    if (pos[0]-.5, pos[1]-.5) in temp_food:
+        temp_food.remove((pos[0]-.5, pos[1]-.5))
+        in_food = 15
+    
+    #find nearest food block
+    block_dist = {}
+    temp_pos = (pos[0]-.5, pos[1]-.5)
+    for i in range(len(temp_food)):
+        block_dist[i] = manhattan_distance(temp_pos,temp_food[i])
+        
+    if len(temp_food) != 0:
+        closest_dest_block = min(block_dist, key=block_dist.get)
+        # How far the player is from the nearest destination block
+        closest_dist = block_dist.get(closest_dest_block)
+    else:
+        closest_dist = 0
+        # return 10000000
+    
+    
+    # How many destination blocks have not been visited
+    blocks_left = len(temp_food)
+            
+    # How far the player is from the enemy at any given time
+    enemy_dist = manhattan_distance(pos,enemy_pos)
+    enemy2_dist = manhattan_distance(pos,enemy2_pos)
+
+    goal_dist = manhattan_distance(pos,goal_pos)
+    
+    # Try 1
+    score = 0
+    if (pos == enemy_pos or pos == enemy2_pos):
+        return -10000000000
+    if enemy_dist < enemy2_dist:
+        enemy_dist = (50/enemy_dist) * -1
+        enemy2_dist = (300/enemy2_dist) * -1
+    else:
+        enemy2_dist = (50/enemy2_dist) * -1
+        enemy_dist = (300/enemy_dist) * -1
+    #Weights   
+    # enemy_dist = (50/enemy_dist) * -1
+    if len(dest_blocks) == 0:
+        goal_dist = 1000 * goal_dist * -1
+        closest_dist = 0
+    else:
+        goal_dist = 0
+        closest_dist *= 3  * -1 
+    blocks_left *= 1000000   * -1
+    
+    score += enemy_dist 
+    score += enemy2_dist
+    score += closest_dist
+    score += in_food
+    print(goal_dist)
+    score += goal_dist
+    
+    return score
+
+
 def findClosestDest(pos, dest_blocks):
     minDistance = math.inf
     for i in range(0, len(dest_blocks)):
@@ -137,12 +200,71 @@ def chooseAction(pos, wstate, dest_blocks, enemy_pos):
 
     return bestMove
 
+def chooseActionTwoEnemies(pos, wstate, dest_blocks, enemy_pos, enemy2_pos, goal_pos):
+    ### YOUR CODE HERE ###
+    # determine which moves are legal
+    legalMoves = ["left", "right", "back", "forward"]
+    illegalMoveList = illegalMoves(wstate)
+    for move in illegalMoveList:
+        legalMoves.remove(move)
+    # evaluate the moves that are legal, choose the one with the best score
+    legalScores = []
+    # change the position depending on the direction of the move
+    for move in legalMoves:
+        if move == "left":
+            # print("This is the left move")
+            newPosition = [pos[0] + 1, pos[1]]
+        elif move == "right":
+            # print("This is the right move")
+            newPosition = [pos[0] - 1, pos[1]]
+        elif move == "back":
+            # print("This is the back move")
+            newPosition = [pos[0], pos[1] - 1]
+        else: # straight
+            # print("This is the forward move")
+            newPosition = [pos[0], pos[1] + 1]
+        score = evalfuncReflexTwoEnemies(newPosition, enemy_pos, enemy2_pos, goal_pos, dest_blocks)
+        print(move + ": " + str(score))
+        legalScores.append(score)
+
+    # find the best score, randomly choose a move with the best score if there are multiple
+    maxScore = -10000000000
+    bestMoves = []
+    for i in range(0, len(legalMoves)):
+        if legalScores[i] > maxScore:
+            maxScore = legalScores[i]
+            bestMoves = [legalMoves[i]]
+        elif legalScores[i] == maxScore:
+            bestMoves.append(legalMoves[i])
+
+    randomBestIndex = randint(0,len(bestMoves)-1)
+    bestMove = bestMoves[randomBestIndex]
+
+    # print("The best move is " + str(bestMove))
+
+    return bestMove
+
 ### Move the agent here
 # Output: void (should just call the correct movement function)
 def reflexAgentMove(agent, pos, wstate, dest_blocks, enemy_pos):
     ### YOUR CODE HERE ###
     # get the direction the agent is supposed to move in
     action = chooseAction(pos, wstate, dest_blocks, enemy_pos)
+    # move in the direction
+    if action == "right":
+        moveRight(agent)
+    elif action == "left":
+        moveLeft(agent)
+    elif action == "forward":
+        moveStraight(agent)
+    elif action == "back":
+        moveBack(agent)
+    return
+
+def reflexAgentMoveTwoEnemies(agent, pos, wstate, dest_blocks, enemy_pos, enemy2_pos, goal_pos):
+    ### YOUR CODE HERE ###
+    # get the direction the agent is supposed to move in
+    action = chooseActionTwoEnemies(pos, wstate, dest_blocks, enemy_pos, enemy2_pos, goal_pos)
     # move in the direction
     if action == "right":
         moveRight(agent)

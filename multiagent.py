@@ -23,6 +23,7 @@ import numpy as np
 import reflex
 
 EntityInfo = namedtuple('EntityInfo', 'x, y, z, name')
+goal_reached = False
 
 # Create one agent host for parsing:
 agent_hosts = [MalmoPython.AgentHost()]
@@ -231,7 +232,7 @@ def getXML(reset):
                   <DrawingDecorator>
                     ''' + mazeCreator() + '''
                   </DrawingDecorator>
-                  <ServerQuitFromTimeUp timeLimitMs="100000"/>
+                  <ServerQuitFromTimeUp timeLimitMs="10000000"/>
                   <ServerQuitWhenAnyAgentFinishes/>
                 </ServerHandlers>
               </ServerSection>
@@ -346,7 +347,7 @@ timed_out = False
 g_score = 0
 
 # Main mission loop
-while not timed_out and food:
+while not timed_out and not goal_reached:
     print('global score:', g_score)
 
     for i in range(NUM_AGENTS):
@@ -360,13 +361,12 @@ while not timed_out and food:
 
             if "XPos" in ob and "ZPos" in ob:
                 current_pos[i] = (ob[u'XPos'], ob[u'ZPos'])
-                print("First pos ", current_pos[i])
-                #print(current_pos[i])
+                # print("First pos ", current_pos[i])
             ########################################
             # I added Enemy2 as an option
             #######################################
             if ob['Name'] == 'Enemy':
-                print('Enemy moving:')
+                # print('Enemy moving:')
                 ###########################
                 # changed the enemy movement function here
                 ##########################
@@ -379,7 +379,7 @@ while not timed_out and food:
                     ob = json.loads(msg)
                 if "XPos" in ob and "ZPos" in ob:
                     current_pos[i] = (ob[u'XPos'], ob[u'ZPos'])
-                    print("Second pos ", current_pos[i])
+                    # print("Second pos ", current_pos[i])
                 eCurr['x'] = current_pos[i][0]
                 eCurr['z'] = current_pos[i][1]
                 if (current_pos[i] == (pCurr['x'], pCurr['z'])):
@@ -389,13 +389,13 @@ while not timed_out and food:
                 ##############################
                 # added this section to make the agent stop moving if other agents were touching
                 ##############################
-                if ((fCurr['x'], fCurr['z']) == (pCurr['x'], pCurr['z']) or (pCurr['x'], pCurr['z']) == (gCurr['x'], gCurr['z'])):
+                if ((fCurr['x'], fCurr['z']) == (pCurr['x'], pCurr['z']) or ((pCurr['x'], pCurr['z']) == (gCurr['x'], gCurr['z']) and not food)):
                     timed_out = True
                     break
 
                 time.sleep(0.1)
             if ob['Name'] == 'Enemy2':
-                print('Enemy2 moving:')
+                # print('Enemy2 moving:')
                 ###########################
                 # changed the enemy movement function here
                 ##########################
@@ -408,7 +408,7 @@ while not timed_out and food:
                     ob = json.loads(msg)
                 if "XPos" in ob and "ZPos" in ob:
                     current_pos[i] = (ob[u'XPos'], ob[u'ZPos'])
-                    print("Second pos ", current_pos[i])
+                    # print("Second pos ", current_pos[i])
                 fCurr['x'] = current_pos[i][0]
                 fCurr['z'] = current_pos[i][1]
                 if (current_pos[i] == (pCurr['x'], pCurr['z'])):
@@ -418,13 +418,13 @@ while not timed_out and food:
                 ##############################
                 # added this section to make the agent stop moving if other agents were touching
                 ##############################
-                if ((eCurr['x'], eCurr['z']) == (pCurr['x'], pCurr['z']) or (pCurr['x'], pCurr['z']) == (gCurr['x'], gCurr['z'])):
+                if ((eCurr['x'], eCurr['z']) == (pCurr['x'], pCurr['z']) or ((pCurr['x'], pCurr['z']) == (gCurr['x'], gCurr['z']) and not food)):
                     timed_out = True
                     break
 
                 time.sleep(0.1)
             if ob['Name'] == 'Goal':
-                print('Goal moving:')
+                # print('Goal moving:')
                 reflex.goalAgentMoveRand(ah, world_state)
                 ah = agent_hosts[i]
                 world_state = ah.getWorldState()
@@ -433,12 +433,17 @@ while not timed_out and food:
                     ob = json.loads(msg)
                 if "XPos" in ob and "ZPos" in ob:
                     current_pos[i] = (ob[u'XPos'], ob[u'ZPos'])
-                    print("Second pos ", current_pos[i])
-                fCurr['x'] = current_pos[i][0]
-                fCurr['z'] = current_pos[i][1]
+                    # print("Second pos ", current_pos[i])
+                gCurr['x'] = current_pos[i][0]
+                gCurr['z'] = current_pos[i][1]
                 if (current_pos[i] == (pCurr['x'], pCurr['z'])):
                     g_score = 100
+                    # timed_out = True
+                    break
+                if (current_pos[i] == (pCurr['x'], pCurr['z'])) and not food:
+                    g_score = 100
                     timed_out = True
+                    goal_reached = True
                     break
                 ##############################
                 # added this section to make the agent stop moving if other agents were touching
@@ -461,10 +466,15 @@ while not timed_out and food:
                 ##################################
                 elif (current_pos[i] == (gCurr['x'], gCurr['z'])):
                     g_score += 100
-                    timed_out = True
+                    # timed_out = True
                     break
-                print('agent moving')
-                reflex.reflexAgentMove(ah, current_pos[i], world_state, food, (eCurr['x'], eCurr['z']))
+                elif (current_pos[i] == (gCurr['x'], gCurr['z'])) and not food:
+                    g_score += 100
+                    timed_out = True
+                    goal_reached = True
+                    break
+                # print('agent moving')
+                reflex.reflexAgentMoveTwoEnemies(ah, current_pos[i], world_state, food, (eCurr['x'], eCurr['z']), (fCurr['x'], fCurr['z']), (gCurr['x'], gCurr['z']))
                 ah = agent_hosts[i]
                 world_state = ah.getWorldState()
                 if world_state.is_mission_running and world_state.number_of_observations_since_last_state > 0:
@@ -472,7 +482,7 @@ while not timed_out and food:
                     ob = json.loads(msg)
                 if "XPos" in ob and "ZPos" in ob:
                     current_pos[i] = (ob[u'XPos'], ob[u'ZPos'])
-                    print("Second pos ", current_pos[i])
+                    # print("Second pos ", current_pos[i])
                 if ((current_pos[i][0] - 0.5, current_pos[i][1] - 0.5) in food):
                     print("Food found!")
                     food.remove((current_pos[i][0] - 0.5, current_pos[i][1] - 0.5))
