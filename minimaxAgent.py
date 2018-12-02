@@ -473,7 +473,12 @@ while not timed_out and not goal_reached:
                     goal_reached = True
                     break
                 # print('agent moving')
-                reflex.reflexAgentMoveTwoEnemies(ah, current_pos[i], world_state, food, (eCurr['x'], eCurr['z']), (fCurr['x'], fCurr['z']), (gCurr['x'], gCurr['z']))
+                #######################################3
+                #######################################
+                #########################################
+                # change the movement function for the player
+                # reflex.reflexAgentMoveTwoEnemies(ah, current_pos[i], world_state, food, (eCurr['x'], eCurr['z']), (fCurr['x'], fCurr['z']), (gCurr['x'], gCurr['z']))
+                reflex.minimaxAgentMove(ah, current_pos[i], world_state, food, (eCurr['x'], eCurr['z']), (fCurr['x'], fCurr['z']), (gCurr['x'], gCurr['z']))
                 ah = agent_hosts[i]
                 world_state = ah.getWorldState()
                 if world_state.is_mission_running and world_state.number_of_observations_since_last_state > 0:

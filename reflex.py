@@ -1,4 +1,3 @@
-# Created by Minbiao Han and Roman Sharykin
 # AI fall 2018
 
 from __future__ import print_function
@@ -76,9 +75,6 @@ def evalfuncReflex(pos, enemy_pos, dest_blocks):
     else: # closestDestDistance >= enemyDistanceToClosestDest
         score = 5 * inverse_closestDestDistance - inverse_distanceToEnemy
 
-    # print("The CLOSEST DESTINATION is " + str(closestDest))
-    # print("The SCORE is " + str(score))
-    # print("The inverse closest dest distance is " + str(inverse_closestDestDistance))
     print(str(len(dest_blocks)) + " food remaining")
     return score
 
@@ -139,7 +135,6 @@ def evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks):
     score += enemy2_dist
     score += closest_dist
     score += in_food
-    print(goal_dist)
     score += goal_dist
     
     return score
@@ -169,16 +164,12 @@ def chooseAction(pos, wstate, dest_blocks, enemy_pos):
     # change the position depending on the direction of the move
     for move in legalMoves:
         if move == "left":
-            # print("This is the left move")
             newPosition = [pos[0] + 1, pos[1]]
         elif move == "right":
-            # print("This is the right move")
             newPosition = [pos[0] - 1, pos[1]]
         elif move == "back":
-            # print("This is the back move")
             newPosition = [pos[0], pos[1] - 1]
         else: # straight
-            # print("This is the forward move")
             newPosition = [pos[0], pos[1] + 1]
         score = evalfuncReflex(newPosition, enemy_pos, dest_blocks)
         legalScores.append(score)
@@ -196,8 +187,6 @@ def chooseAction(pos, wstate, dest_blocks, enemy_pos):
     randomBestIndex = randint(0,len(bestMoves)-1)
     bestMove = bestMoves[randomBestIndex]
 
-    # print("The best move is " + str(bestMove))
-
     return bestMove
 
 def chooseActionTwoEnemies(pos, wstate, dest_blocks, enemy_pos, enemy2_pos, goal_pos):
@@ -212,19 +201,15 @@ def chooseActionTwoEnemies(pos, wstate, dest_blocks, enemy_pos, enemy2_pos, goal
     # change the position depending on the direction of the move
     for move in legalMoves:
         if move == "left":
-            # print("This is the left move")
             newPosition = [pos[0] + 1, pos[1]]
         elif move == "right":
-            # print("This is the right move")
             newPosition = [pos[0] - 1, pos[1]]
         elif move == "back":
-            # print("This is the back move")
             newPosition = [pos[0], pos[1] - 1]
         else: # straight
-            # print("This is the forward move")
             newPosition = [pos[0], pos[1] + 1]
         score = evalfuncReflexTwoEnemies(newPosition, enemy_pos, enemy2_pos, goal_pos, dest_blocks)
-        print(move + ": " + str(score))
+        # print(move + ": " + str(score))
         legalScores.append(score)
 
     # find the best score, randomly choose a move with the best score if there are multiple
@@ -239,8 +224,6 @@ def chooseActionTwoEnemies(pos, wstate, dest_blocks, enemy_pos, enemy2_pos, goal
 
     randomBestIndex = randint(0,len(bestMoves)-1)
     bestMove = bestMoves[randomBestIndex]
-
-    # print("The best move is " + str(bestMove))
 
     return bestMove
 
@@ -424,3 +407,129 @@ def goalAgentMoveRand(agent, ws):
 
     elif togo == "back":
         moveBack(agent)
+
+
+
+
+
+
+
+
+
+
+
+
+################################################
+# minimax functions
+###############################################
+# http://www.giocc.com/concise-implementation-of-minimax-through-higher-order-functions.html
+
+
+def minimaxEvalfunc(pos, wstate, enemy_pos, enemy2_pos, goal_pos, dest_blocks):
+    # while not at goal state 
+    # stop if the algorithm goes to a certain depth
+    legalPositions = getLegalPositions(pos, wstate)
+
+    best_position = legalPositions[0]
+    best_score = float('-inf')
+
+    print("hello")
+    for position in legalPositions:
+        score = takeMinScore(position, enemy_pos, enemy2_pos, goal_pos, dest_blocks, 1, wstate)
+        print(score)
+        if score > best_score:
+            best_position = position
+            best_score = score
+    
+    if best_position == [pos[0] + 1, pos[1]]:
+        move = "left"
+    elif best_position == [pos[0] - 1, pos[1]]:
+        move = "right"
+    elif best_position == [pos[0], pos[1] - 1]:
+        move = "back"
+    elif best_position == [pos[0], pos[1] + 1]: # forward
+        move = "forward"
+
+    # return best_position
+    return move
+
+
+def takeMaxScore(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks, depth, wstate):
+        # might want to change the max depth, might want to add a condition to return something if it is at an end state
+    if depth == 3:
+        return evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks)
+    # find the next possible moves for each enemy
+    legalPositions = getLegalPositions(pos, wstate)
+    best_score = float('-inf')
+    for position in legalPositions:
+        score = takeMinScore(position, enemy_pos, enemy2_pos, goal_pos, dest_blocks, depth, wstate)
+        if score > best_score:
+            best_score = score
+    return best_score
+   
+
+def takeMinScore(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks, depth, wstate):
+    # assume both enemies move at the same time toward the player
+    # might want to change the max depth, might want to add a condition to return something if it is at an end state
+    if depth == 3:
+        return evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks)
+    # find the next possible moves for each enemy
+    legalPositions = getLegalPositions(enemy_pos, wstate)
+    legalPositions2 = getLegalPositions(enemy2_pos, wstate)
+    best_score = float('inf')
+    # we know that the enemy will move to the closest position to the player in the most likely scenario
+    closestDist = math.inf
+    closestDistPosition = legalPositions[0]
+    closestDist2 = math.inf
+    closestDistPosition2 = legalPositions2[0]
+    for position in legalPositions:
+        dist = manhattan_distance(enemy_pos, pos)
+        if dist < closestDist:
+            closestDist = dist
+            closestDistPosition = position
+    for position in legalPositions2:
+        dist = manhattan_distance(enemy2_pos, pos)
+        if dist < closestDist2:
+            closestDist2 = dist
+            closestDistPosition2 = position
+
+    best_score = takeMaxScore(pos, closestDistPosition, closestDistPosition2, goal_pos, dest_blocks, depth+1, wstate)
+    return best_score
+
+def getLegalPositions(pos, wstate):
+    legalMoves = ["left", "right", "back", "forward"]
+    illegalMoveList = illegalMoves(wstate)
+    for move in illegalMoveList:
+        legalMoves.remove(move)
+    # evaluate the moves that are legal, choose the one with the best score
+    # legalScores = []
+    newPositions = []
+    # change the position depending on the direction of the move
+    for move in legalMoves:
+        if move == "left":
+            newPosition = [pos[0] + 1, pos[1]]
+        elif move == "right":
+            newPosition = [pos[0] - 1, pos[1]]
+        elif move == "back":
+            newPosition = [pos[0], pos[1] - 1]
+        else: # straight
+            newPosition = [pos[0], pos[1] + 1]
+        newPositions.append(newPosition)
+    
+    return newPositions
+
+
+def minimaxAgentMove(agent, pos, wstate, dest_blocks, enemy_pos, enemy2_pos, goal_pos):
+    ### YOUR CODE HERE ###
+    # get the direction the agent is supposed to move in
+    action = minimaxEvalfunc(pos, wstate, enemy_pos, enemy2_pos, goal_pos, dest_blocks)
+    # move in the direction
+    if action == "right":
+        moveRight(agent)
+    elif action == "left":
+        moveLeft(agent)
+    elif action == "forward":
+        moveStraight(agent)
+    elif action == "back":
+        moveBack(agent)
+    return
