@@ -382,7 +382,7 @@ while not timed_out and not goal_reached:
                 eCurr['x'] = current_pos[i][0]
                 eCurr['z'] = current_pos[i][1]
                 if (current_pos[i] == (pCurr['x'], pCurr['z'])):
-                    g_score -= 100
+                    g_score -= 300
                     timed_out = True
                     break
                 ##############################
@@ -411,7 +411,7 @@ while not timed_out and not goal_reached:
                 fCurr['x'] = current_pos[i][0]
                 fCurr['z'] = current_pos[i][1]
                 if (current_pos[i] == (pCurr['x'], pCurr['z'])):
-                    g_score -= 100
+                    g_score -= 300
                     timed_out = True
                     break
                 ##############################
@@ -436,11 +436,11 @@ while not timed_out and not goal_reached:
                 gCurr['x'] = current_pos[i][0]
                 gCurr['z'] = current_pos[i][1]
                 if (current_pos[i] == (pCurr['x'], pCurr['z'])):
-                    g_score = 100
+                    g_score = 300
                     # timed_out = True
                     break
                 if (current_pos[i] == (pCurr['x'], pCurr['z'])) and not food:
-                    g_score = 100
+                    g_score = 300
                     timed_out = True
                     goal_reached = True
                     break
@@ -457,18 +457,18 @@ while not timed_out and not goal_reached:
                 # updated this to stop when it touches either enemy
                 ###################################
                 if (current_pos[i] == (eCurr['x'], eCurr['z'])) or (current_pos[i] == (fCurr['x'], fCurr['z'])):
-                    g_score -= 100
+                    g_score -= 300
                     timed_out = True
                     break
                 ##################################
                 # added this section to stop if the enemy touches the goal agent
                 ##################################
                 elif (current_pos[i] == (gCurr['x'], gCurr['z'])):
-                    g_score += 100
+                    g_score += 300
                     # timed_out = True
                     break
                 elif (current_pos[i] == (gCurr['x'], gCurr['z'])) and not food:
-                    g_score += 100
+                    g_score += 300
                     timed_out = True
                     goal_reached = True
                     break
@@ -485,12 +485,12 @@ while not timed_out and not goal_reached:
                 if ((current_pos[i][0] - 0.5, current_pos[i][1] - 0.5) in food):
                     print("Food found!")
                     food.remove((current_pos[i][0] - 0.5, current_pos[i][1] - 0.5))
-                    g_score += 10
+                    g_score += 25
                 if (current_pos[i] == (eCurr['x'], eCurr['z'])):
-                    g_score -= 100
+                    g_score -= 300
                     timed_out = True
                     break
-                #g_score -= 1
+                g_score -= 1
                 pCurr['x'] = current_pos[i][0]
                 pCurr['z'] = current_pos[i][1]
 

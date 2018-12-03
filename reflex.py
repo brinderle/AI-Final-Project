@@ -79,7 +79,7 @@ def evalfuncReflex(pos, enemy_pos, dest_blocks):
     return score
 
 def evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks):
-    print(str(goal_pos[0]) + ", " + str(goal_pos[1]))
+    # print(str(goal_pos[0]) + ", " + str(goal_pos[1]))
     temp_food = dest_blocks.copy()
 
     in_food = 0
@@ -91,7 +91,8 @@ def evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks):
     block_dist = {}
     temp_pos = (pos[0]-.5, pos[1]-.5)
     for i in range(len(temp_food)):
-        block_dist[i] = manhattan_distance(temp_pos,temp_food[i])
+        block_dist[i] = manhattan_distance(temp_pos,dest_blocks[i])
+        # block_dist[i] = manhattan_distance(temp_pos,temp_food[i])
         
     if len(temp_food) != 0:
         closest_dest_block = min(block_dist, key=block_dist.get)
@@ -108,30 +109,38 @@ def evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks):
     # How far the player is from the enemy at any given time
     enemy_dist = manhattan_distance(pos,enemy_pos)
     enemy2_dist = manhattan_distance(pos,enemy2_pos)
+    # avoid divide by zero errors
+    if enemy_dist == 0:
+        enemy_dist = .01
+    if enemy2_dist == 0:
+        enemy2_dist = .01
+
+    if enemy_dist <= 1 or enemy2_dist <= 1:
+        return -100000
 
     goal_dist = manhattan_distance(pos,goal_pos)
     
     # Try 1
     score = 0
     if (pos == enemy_pos or pos == enemy2_pos):
-        return -10000000000
+        return -100000000
     if enemy_dist < enemy2_dist:
         enemy_dist = (50/enemy_dist) * -1
-        enemy2_dist = (300/enemy2_dist) * -1
+        enemy2_dist = (50/enemy2_dist) * -1
     else:
         enemy2_dist = (50/enemy2_dist) * -1
-        enemy_dist = (300/enemy_dist) * -1
+        enemy_dist = (50/enemy_dist) * -1
     #Weights   
     # enemy_dist = (50/enemy_dist) * -1
     if len(dest_blocks) == 0:
-        goal_dist = 1000 * goal_dist * -1
+        goal_dist = 10 * goal_dist * -1
         closest_dist = 0
     else:
         goal_dist = 0
-        closest_dist *= 3  * -1 
-    blocks_left *= 1000000   * -1
+        closest_dist = 100 * closest_dist * -1 
+    # blocks_left *= 1000000   * -1
     
-    score += enemy_dist 
+    # score += enemy_dist 
     score += enemy2_dist
     score += closest_dist
     score += in_food
@@ -209,7 +218,7 @@ def chooseActionTwoEnemies(pos, wstate, dest_blocks, enemy_pos, enemy2_pos, goal
         else: # straight
             newPosition = [pos[0], pos[1] + 1]
         score = evalfuncReflexTwoEnemies(newPosition, enemy_pos, enemy2_pos, goal_pos, dest_blocks)
-        # print(move + ": " + str(score))
+        print(move + ": " + str(score))
         legalScores.append(score)
 
     # find the best score, randomly choose a move with the best score if there are multiple
@@ -433,10 +442,10 @@ def minimaxEvalfunc(pos, wstate, enemy_pos, enemy2_pos, goal_pos, dest_blocks):
     best_position = legalPositions[0]
     best_score = float('-inf')
 
-    print("hello")
+    # print("hello")
     for position in legalPositions:
         score = takeMinScore(position, enemy_pos, enemy2_pos, goal_pos, dest_blocks, 1, wstate)
-        print(score)
+        # print(score)
         if score > best_score:
             best_position = position
             best_score = score
@@ -462,7 +471,7 @@ def takeMaxScore(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks, depth, wstat
     legalPositions = getLegalPositions(pos, wstate)
     best_score = float('-inf')
     for position in legalPositions:
-        score = takeMinScore(position, enemy_pos, enemy2_pos, goal_pos, dest_blocks, depth, wstate)
+        score = takeMinScore(position, enemy_pos, enemy2_pos, goal_pos, dest_blocks, depth + 1, wstate)
         if score > best_score:
             best_score = score
     return best_score
