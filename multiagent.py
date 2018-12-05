@@ -435,14 +435,16 @@ while not timed_out and not goal_reached:
                     # print("Second pos ", current_pos[i])
                 gCurr['x'] = current_pos[i][0]
                 gCurr['z'] = current_pos[i][1]
-                if (current_pos[i] == (pCurr['x'], pCurr['z'])):
-                    g_score = 300
-                    # timed_out = True
-                    break
                 if (current_pos[i] == (pCurr['x'], pCurr['z'])) and not food:
-                    g_score = 300
+                    print("hello")
+                    g_score += 300
                     timed_out = True
                     goal_reached = True
+                    break
+                if (current_pos[i] == (pCurr['x'], pCurr['z'])):
+                    print("hello")
+                    g_score += 300
+                    # timed_out = True
                     break
                 ##############################
                 # added this section to make the agent stop moving if other agents were touching
@@ -453,25 +455,6 @@ while not timed_out and not goal_reached:
 
                 time.sleep(0.1)
             if ob['Name'] == 'Player':
-                ##################################
-                # updated this to stop when it touches either enemy
-                ###################################
-                if (current_pos[i] == (eCurr['x'], eCurr['z'])) or (current_pos[i] == (fCurr['x'], fCurr['z'])):
-                    g_score -= 300
-                    timed_out = True
-                    break
-                ##################################
-                # added this section to stop if the enemy touches the goal agent
-                ##################################
-                elif (current_pos[i] == (gCurr['x'], gCurr['z'])):
-                    g_score += 300
-                    # timed_out = True
-                    break
-                elif (current_pos[i] == (gCurr['x'], gCurr['z'])) and not food:
-                    g_score += 300
-                    timed_out = True
-                    goal_reached = True
-                    break
                 # print('agent moving')
                 reflex.reflexAgentMoveTwoEnemies(ah, current_pos[i], world_state, food, (eCurr['x'], eCurr['z']), (fCurr['x'], fCurr['z']), (gCurr['x'], gCurr['z']))
                 ah = agent_hosts[i]
@@ -493,6 +476,27 @@ while not timed_out and not goal_reached:
                 g_score -= 1
                 pCurr['x'] = current_pos[i][0]
                 pCurr['z'] = current_pos[i][1]
+                ##################################
+                # updated this to stop when it touches either enemy
+                ###################################
+                if (current_pos[i] == (eCurr['x'], eCurr['z'])) or (current_pos[i] == (fCurr['x'], fCurr['z'])):
+                    g_score -= 300
+                    timed_out = True
+                    break
+                ##################################
+                # added this section to stop if the enemy touches the goal agent
+                ##################################
+                elif (current_pos[i] == (gCurr['x'], gCurr['z'])) and not food:
+                    print("hello")
+                    g_score += 300
+                    timed_out = True
+                    goal_reached = True
+                    break
+                elif (current_pos[i] == (gCurr['x'], gCurr['z'])):
+                    print("hello")
+                    g_score += 300
+                    # timed_out = True
+                    break
 
     time.sleep(0.05)
 print(food)
