@@ -5,12 +5,24 @@ import os
 
 size = 10
 
+def reflex_eval(moves, players, food):
+    vals = []
+    for i in moves:
+        tmp = 0
+        tmp -= 10*manhattan_distance(i, players[1])
+        tmp -= 10*manhattan_distance(i, players[2])
+        tmp += 10*manhattan_distance(i, players[3])
+        for j in food:
+            tmp -= manhattan_distance(i, j)
+        vals.append(eval)
+    return moves[vals.index(max(vals))]    
+    
 def main():
     grid, players, food = setup(size)
     score = 0
     printGrid(grid, players, food, score)
     for i in range(50):
-        players = move(players)
+        players = move(players, food)
         os.system('cls' if os.name == 'nt' else 'clear')
         printGrid(grid, players, food, score)
         time.sleep(.2)
@@ -74,7 +86,11 @@ def printGrid(grid, players, food, score):
        
 # moves all players except for the main agent
 # currently all moves are random
-def move(players):
+def move(players, food)
+    # player
+    player_moves = get_moves(players[0])
+    players[0] = reflex_eval(player_moves, players, food)
+    
     # first enemy
     enemy_moves = get_moves(players[1])
     players[1] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
@@ -105,6 +121,6 @@ def manhattan_distance(start, end):
     sx, sy = start
     ex, ey = end
     return abs(ex - sx) + abs(ey - sy)
-       
+      
 if __name__ == '__main__':
     main()
