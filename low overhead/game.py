@@ -35,7 +35,7 @@ def reflex_eval(moves, players, food):
         enemy1_dist = manhattan_distance(players[0], players[1])
         enemy2_dist = manhattan_distance(players[0], players[2])
         if enemy1_dist <= 1 or enemy2_dist <= 1:
-            return -100000
+            tmp = -100000
         goal_dist = manhattan_distance(players[0], players[3])
         if enemy1_dist < enemy2_dist:
             enemy1_dist = (50/enemy1_dist) * -1
@@ -74,9 +74,8 @@ def main():
     score = 0
     printGrid(grid, players, food, score)
     for i in range(50):
-        players = move(players, food)
+        players = move(grid, players, food, score)
         score = check_score(grid, players, food, score)
-        os.system('cls' if os.name == 'nt' else 'clear')
         printGrid(grid, players, food, score)
         time.sleep(.1)
         
@@ -115,45 +114,58 @@ def setup(size):
 
 # prints grid and score
 def printGrid(grid, players, food, score):
+    os.system('cls' if os.name == 'nt' else 'clear')
+  
     grid2 = copy.deepcopy(grid)
    
     # display food
     for i in food:
-        grid2[i[0]][i[1]] = 'O'
+        grid2[i[0]][i[1]] = '.'
       
     # display players
     c = 0
     for i in players:
-        char = 'X'
         if c == 0:
             char = 'P'
+        if c == 1:
+            char = 'E'
+        if c == 2:
+            char = 'F'
         if c == 3:
             char = 'G'
         grid2[i[0]][i[1]] = char
         c += 1
     
     # print grid
-    print('\n'.join(['|'.join(['{:2}'.format(item) for item in row]) for row in grid2]))
+    print('\n'.join([' '.join(['{:2}'.format(item) for item in row]) for row in grid2]))
     print("Score: ", score)
        
 # moves all players except for the main agent
 # currently all moves are random
-def move(players, food):
+def move(grid, players, food, score):
     # player
     player_moves = get_moves(players[0])
     players[0] = reflex_eval(player_moves, players, food)
+    
+    check_score(grid, players, food, score)
 
     # first enemy
     enemy_moves = get_moves(players[1])
     players[1] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
     
+    check_score(grid, players, food, score)
+    
     # second enemy
     enemy_moves = get_moves(players[2])
     players[2] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
     
+    check_score(grid, players, food, score)
+    
     # goal
     goal_moves = get_moves(players[3])
     players[3] = goal_moves[random.randint(0,len(goal_moves)-1)]
+        
+    check_score(grid, players, food, score)    
         
     return players
     
