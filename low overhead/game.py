@@ -75,13 +75,11 @@ def main():
     printGrid(grid, players, food, score)
     for i in range(50):
         players = move(players, food)
-        score = check_score(players, food, score)
+        score = check_score(grid, players, food, score)
         os.system('cls' if os.name == 'nt' else 'clear')
         printGrid(grid, players, food, score)
-        time.sleep(.2)
-        if players[0] in players[1:]:
-            break
-
+        time.sleep(.1)
+        
 # randomly generates food and player locations        
 def setup(size):
     # make map
@@ -138,7 +136,6 @@ def printGrid(grid, players, food, score):
     print('\n'.join(['|'.join(['{:2}'.format(item) for item in row]) for row in grid2]))
     print("Score: ", score)
        
-
 # moves all players except for the main agent
 # currently all moves are random
 def move(players, food):
@@ -157,7 +154,7 @@ def move(players, food):
     # goal
     goal_moves = get_moves(players[3])
     players[3] = goal_moves[random.randint(0,len(goal_moves)-1)]
-    
+        
     return players
     
 # determines legal moves for a player
@@ -177,16 +174,24 @@ def manhattan_distance(start, end):
     ex, ey = end
     return abs(ex - sx) + abs(ey - sy)
   
-def check_score(players, food, score):
+def check_score(grid, players, food, score):
     if players[0] == players[1] or players[0] == players[2]:
         score -= 100
+        printGrid(grid, players, food, score)
+        time.sleep(.1)
+        quit()
     if players[0] == players[3]:
         score += 300
+        printGrid(grid, players, food, score)
+        time.sleep(.1)
+        quit()
     if players[0] in food:
         score += 25
+        printGrid(grid, players, food, score)
+        time.sleep(.1)
         food.remove(players[0])
     else:
-        score -= 1
+        score -= .25
     return score
   
 if __name__ == '__main__':
