@@ -5,79 +5,12 @@ import os
 
 size = 10
 
-# def reflex_eval(moves, players, food):
-    # vals = []
-    # for i in moves:
-        # tmp = 0
-        # tmp -= 100*manhattan_distance(i, players[1])
-        # tmp -= 100*manhattan_distance(i, players[2])
-        # tmp += 100*manhattan_distance(i, players[3])
-        # for j in food:
-            # tmp -= manhattan_distance(i, j)
-        # vals.append(tmp)
-    # return moves[vals.index(max(vals))]   
-
-def reflex_eval(moves, players, food):
-    vals = []
-    for i in moves:
-        tmp_food = copy.deepcopy(food)
-        tmp = 0
-        in_food = 0
-        if i in tmp_food:
-            tmp_food.remove(i)
-            in_food = 15   
-        if len(tmp_food) != 0:
-            closest_dist = find_closest_food(players, food)
-                
-            # closest_dist = manhattan_distance(players[0], closest_food)
-        else:
-            closest_dist = 0
-        enemy1_dist = manhattan_distance(players[0], players[1])
-        enemy2_dist = manhattan_distance(players[0], players[2])
-        if enemy1_dist <= 1 or enemy2_dist <= 1:
-            tmp = -100000
-        goal_dist = manhattan_distance(players[0], players[3])
-        if enemy1_dist < enemy2_dist:
-            enemy1_dist = (50/enemy1_dist) * -1
-            enemy2_dist = (50/enemy2_dist) * -1
-        else:
-            enemy2_dist = (50/enemy2_dist) * -1
-            enemy1_dist = (50/enemy1_dist) * -1
-        tmp += enemy1_dist 
-        tmp += enemy2_dist
-        tmp += closest_dist
-        tmp += in_food
-        tmp += goal_dist
-        vals.append(tmp)
-    if vals.count(max(vals)) > 1:
-        choices = []
-        for i in vals:
-            if i == max(vals):
-                choices.append(i)
-        time.sleep(.2)
-        return moves[random.randint(0,len(choices)-1)]
-    time.sleep(.2)
-    return moves[vals.index(max(vals))]
-    
-def find_closest_food(players, food):
-    closest_dist = size*size
-    # closest_food = None
-    for i in food:
-        tmp = manhattan_distance(players[0], i)
-        if tmp < closest_dist:
-            closest_dist = tmp
-            # closest_food = i
-    return closest_dist
-    
 def main():
     grid, players, food = setup(size)
     score = 0
     printGrid(grid, players, food, score)
     for i in range(50):
         players, food, score = move(grid, players, food, score)
-        # score = check_score(grid, players, food, score)
-        # printGrid(grid, players, food, score)
-        # time.sleep(.1)
         
 # randomly generates food and player locations     
 def setup(size):
@@ -111,7 +44,7 @@ def setup(size):
         players[3] = (random.randint(0,size-1), random.randint(0,size-1))
   
     return grid, players, food
-
+    
 # prints grid and score
 def printGrid(grid, players, food, score):
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -194,6 +127,8 @@ def manhattan_distance(start, end):
     ex, ey = end
     return abs(ex - sx) + abs(ey - sy)
   
+# updates score; removes food if necessary
+# ends game if player touches goal or enemy
 def check_score(grid, players, food, score):
     if players[0] == players[1] or players[0] == players[2]:
         score -= 100
@@ -212,6 +147,60 @@ def check_score(grid, players, food, score):
     else:
         score -= .25
     return score
-  
+
+# finds closest food block and returns distance to it    
+def find_closest_food(players, food):
+    closest_dist = size*size
+    # closest_food = None
+    for i in food:
+        tmp = manhattan_distance(players[0], i)
+        if tmp < closest_dist:
+            closest_dist = tmp
+            # closest_food = i
+    return closest_dist
+
+# reflex evaluation function
+def reflex_eval(moves, players, food):
+    vals = []
+    for i in moves:
+        tmp_food = copy.deepcopy(food)
+        tmp = 0
+        in_food = 0
+        if i in tmp_food:
+            tmp_food.remove(i)
+            in_food = 15   
+        if len(tmp_food) != 0:
+            closest_dist = find_closest_food(players, food)
+                
+            # closest_dist = manhattan_distance(players[0], closest_food)
+        else:
+            closest_dist = 0
+        enemy1_dist = manhattan_distance(players[0], players[1])
+        enemy2_dist = manhattan_distance(players[0], players[2])
+        if enemy1_dist <= 1 or enemy2_dist <= 1:
+            tmp = -100000
+        goal_dist = manhattan_distance(players[0], players[3])
+        if enemy1_dist < enemy2_dist:
+            enemy1_dist = (50/enemy1_dist) * -1
+            enemy2_dist = (50/enemy2_dist) * -1
+        else:
+            enemy2_dist = (50/enemy2_dist) * -1
+            enemy1_dist = (50/enemy1_dist) * -1
+        tmp += enemy1_dist 
+        tmp += enemy2_dist
+        tmp += closest_dist
+        tmp += in_food
+        tmp += goal_dist
+        vals.append(tmp)
+    if vals.count(max(vals)) > 1:
+        choices = []
+        for i in vals:
+            if i == max(vals):
+                choices.append(i)
+        time.sleep(.2)
+        return moves[random.randint(0,len(choices)-1)]
+    time.sleep(.2)
+    return moves[vals.index(max(vals))]
+      
 if __name__ == '__main__':
     main()
