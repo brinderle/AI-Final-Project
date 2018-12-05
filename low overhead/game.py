@@ -74,12 +74,12 @@ def main():
     score = 0
     printGrid(grid, players, food, score)
     for i in range(50):
-        players = move(grid, players, food, score)
-        score = check_score(grid, players, food, score)
-        printGrid(grid, players, food, score)
-        time.sleep(.1)
+        players, food, score = move(grid, players, food, score)
+        # score = check_score(grid, players, food, score)
+        # printGrid(grid, players, food, score)
+        # time.sleep(.1)
         
-# randomly generates food and player locations        
+# randomly generates food and player locations     
 def setup(size):
     # make map
     grid = [[' ' for x in range(size)] for y in range(size)] 
@@ -147,27 +147,35 @@ def move(grid, players, food, score):
     player_moves = get_moves(players[0])
     players[0] = reflex_eval(player_moves, players, food)
     
-    check_score(grid, players, food, score)
+    score = check_score(grid, players, food, score)
+    printGrid(grid, players, food, score)
+    time.sleep(.1)
 
     # first enemy
     enemy_moves = get_moves(players[1])
     players[1] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
     
-    check_score(grid, players, food, score)
+    score = check_score(grid, players, food, score)
+    printGrid(grid, players, food, score)
+    time.sleep(.1)
     
     # second enemy
     enemy_moves = get_moves(players[2])
     players[2] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
     
-    check_score(grid, players, food, score)
+    score = check_score(grid, players, food, score)
+    printGrid(grid, players, food, score)
+    time.sleep(.1)
     
     # goal
     goal_moves = get_moves(players[3])
     players[3] = goal_moves[random.randint(0,len(goal_moves)-1)]
         
-    check_score(grid, players, food, score)    
+    score = check_score(grid, players, food, score) 
+    printGrid(grid, players, food, score)
+    time.sleep(.1)
         
-    return players
+    return players, food, score
     
 # determines legal moves for a player
 def get_moves(player):
@@ -190,18 +198,17 @@ def check_score(grid, players, food, score):
     if players[0] == players[1] or players[0] == players[2]:
         score -= 100
         printGrid(grid, players, food, score)
-        time.sleep(.1)
         quit()
-    if players[0] == players[3]:
+    elif players[0] == players[3]:
         score += 300
         printGrid(grid, players, food, score)
-        time.sleep(.1)
         quit()
     if players[0] in food:
         score += 25
+        food.remove(players[0])
         printGrid(grid, players, food, score)
         time.sleep(.1)
-        food.remove(players[0])
+        return score
     else:
         score -= .25
     return score
