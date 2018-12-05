@@ -436,11 +436,11 @@ while not timed_out and not goal_reached:
                 gCurr['x'] = current_pos[i][0]
                 gCurr['z'] = current_pos[i][1]
                 if (current_pos[i] == (pCurr['x'], pCurr['z'])):
-                    g_score = 300
+                    g_score += 300
                     # timed_out = True
                     break
                 if (current_pos[i] == (pCurr['x'], pCurr['z'])) and not food:
-                    g_score = 300
+                    g_score += 300
                     timed_out = True
                     goal_reached = True
                     break

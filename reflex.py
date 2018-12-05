@@ -140,7 +140,7 @@ def evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks):
         closest_dist = 100 * closest_dist * -1 
     # blocks_left *= 1000000   * -1
     
-    # score += enemy_dist 
+    score += enemy_dist 
     score += enemy2_dist
     score += closest_dist
     score += in_food
