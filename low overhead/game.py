@@ -24,7 +24,6 @@ def reflex_eval(moves, players, food):
         tmp = 0
         in_food = 0
         if i in tmp_food:
-            print("getting food!")
             tmp_food.remove(i)
             in_food = 15   
         if len(tmp_food) != 0:
@@ -55,10 +54,8 @@ def reflex_eval(moves, players, food):
         for i in vals:
             if i == max(vals):
                 choices.append(i)
-        print(moves[random.randint(0,len(choices)-1)])
         time.sleep(.2)
         return moves[random.randint(0,len(choices)-1)]
-    print(moves[vals.index(max(vals))])
     time.sleep(.2)
     return moves[vals.index(max(vals))]
     
@@ -79,7 +76,6 @@ def main():
     for i in range(50):
         players = move(players, food)
         score = check_score(players, food, score)
-        print("food left: ", len(food))
         os.system('cls' if os.name == 'nt' else 'clear')
         printGrid(grid, players, food, score)
         time.sleep(.2)
