@@ -2,6 +2,7 @@ import random
 import time
 import copy
 import os
+import math
 
 size = 10
 
@@ -201,6 +202,64 @@ def reflex_eval(moves, players, food):
         return moves[random.randint(0,len(choices)-1)]
     time.sleep(.2)
     return moves[vals.index(max(vals))]
-      
+
+# todo
+def minimax_eval(moves, players, food):
+    vals = [0]
+    for i in moves:
+        tmp = get_min_score(moves, players, food, 7)
+        vals.append(tmp)
+    print(vals)
+    choices = []
+    for i in vals:
+        if i == max(vals):
+            i += random.randint(0,10000)
+        choices.append(i)
+    return moves[choices.index(max(choices))]
+
+# todo    
+def get_max_score(moves, players, food, depth):
+    if depth == 3:
+        return evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks)
+    else:
+        return get_min_score(moves, players, food, depth-1)
+    # player_moves = get_moves(players[0])
+    # best_score = float('-inf')
+    # for i in player_moves:
+        # val = get_min_score(moves, players, food, depth-1)
+        # if val > best_score:
+            # best_score = val
+    
+    return best_score
+ 
+# todo 
+def get_min_score(moves, players, food, depth):
+    if depth == 3:
+        return reflex_eval(moves, players, food)
+    enemy1_moves = get_moves(players[1])
+    enemy2_moves = get_moves(players[2])
+    
+    closest_dist1 = math.inf
+    closest_dist2 = math.inf
+    closest_pos1 = enemy1_moves[0]
+    closest_pos2 = enemy2_moves[0]
+    
+    for i in enemy1_moves:
+        dist = manhattan_distance(players[0], i)
+        if dist < closest_dist1:
+            closest_dist1 = dist
+            closest_pos1 = i
+    for i in enemy2_moves:
+        dist = manhattan_distance(players[0], i)
+        if dist < closest_dist2:
+            closest_dist2 = dist
+            closest_pos2 = i
+    
+    pred_players = copy.deepcopy(players)
+    pred_players[1] = closest_pos1
+    pred_players[2] = closest_pos2
+    
+    return get_max_score(moves, pred_players, food, depth-1)
+    
 if __name__ == '__main__':
     main()
