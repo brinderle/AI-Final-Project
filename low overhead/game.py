@@ -6,6 +6,7 @@ import math
 import sys
 
 size = 10
+goal_reached = False
 
 def main():     
     grid, players, food = setup(size)
@@ -13,8 +14,9 @@ def main():
     layoutFile = sys.argv[1] + ".lay"
     grid, players, food, walls = setupLayout(layoutFile)
     printGrid(grid, players, food, score)
+    goal_reached = False
     for i in range(500):
-        players, food, score = move(grid, players, food, walls, score)
+        players, food, score, goal_reached = move(grid, players, food, walls, score, goal_reached)
 
 def readGrid(layoutFile):
     with open(layoutFile) as layout:
@@ -123,13 +125,13 @@ def printGrid(grid, players, food, score):
        
 # moves all players
 # enemies move toward player with probability, goal moves randomly
-def move(grid, players, food, walls, score):
+def move(grid, players, food, walls, score, goal_reached):
     # player
     player_moves = get_moves(players[0], grid, walls)
-    vals = reflex_eval(player_moves, players, food)
+    vals = reflex_eval(player_moves, players, food, goal_reached)
     players[0] = choose_move(player_moves, vals)
     
-    score = check_score(grid, players, food, score)
+    score, goal_reached = check_score(grid, players, food, score, goal_reached)
     printGrid(grid, players, food, score)
     # time.sleep(.1)
 
@@ -138,7 +140,7 @@ def move(grid, players, food, walls, score):
     # players[1] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
     players[1] = enemyAgentMoveWithProb(enemy_moves, players[1], players[0])
     
-    score = check_score(grid, players, food, score)
+    score, goal_reached = check_score(grid, players, food, score, goal_reached)
     printGrid(grid, players, food, score)
     # time.sleep(.1)
     
@@ -147,7 +149,7 @@ def move(grid, players, food, walls, score):
     # players[2] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
     players[2] = enemyAgentMoveWithProb(enemy_moves, players[2], players[0])
     
-    score = check_score(grid, players, food, score)
+    score, goal_reached = check_score(grid, players, food, score, goal_reached)
     printGrid(grid, players, food, score)
     # time.sleep(.1)
     
@@ -155,11 +157,11 @@ def move(grid, players, food, walls, score):
     goal_moves = get_moves(players[3], grid, walls)
     players[3] = goal_moves[random.randint(0,len(goal_moves)-1)]
         
-    score = check_score(grid, players, food, score) 
+    score, goal_reached = check_score(grid, players, food, score, goal_reached) 
     printGrid(grid, players, food, score)
     # time.sleep(.1)
         
-    return players, food, score
+    return players, food, score, goal_reached
     
 # determines legal moves for a player
 def get_moves(player, grid, walls):
@@ -181,24 +183,33 @@ def manhattan_distance(start, end):
   
 # updates score; removes food if necessary
 # ends game if player touches goal or enemy
-def check_score(grid, players, food, score):
-    if players[0] == players[1] or players[0] == players[2]:
-        score -= 100
-        printGrid(grid, players, food, score)
-        quit()
-    elif players[0] == players[3]:
-        score += 300
-        printGrid(grid, players, food, score)
-        quit()
+def check_score(grid, players, food, score, goal_reached):
+    # print(goal_reached)
     if players[0] in food:
         score += 25
         food.remove(players[0])
         printGrid(grid, players, food, score)
         # time.sleep(.1)
-        return score
+        return score, goal_reached
     else:
         score -= .25
-    return score
+    if players[0] == players[1] or players[0] == players[2]:
+        score -= 100
+        printGrid(grid, players, food, score)
+        quit()
+    elif goal_reached and len(food) == 0:
+        score += 300
+        printGrid(grid, players, food, score)
+        goal_reached = True
+        quit()
+    elif players[0] == players[3] and goal_reached == False:
+        score += 300
+        printGrid(grid, players, food, score)
+        goal_reached = True
+        time.sleep(.1)
+    elif players[0] == players[3]:
+        goal_reached = True
+    return score, goal_reached
 
 # finds closest food block and returns distance to it    
 def find_closest_food(players, food):
@@ -212,7 +223,7 @@ def find_closest_food(players, food):
     return closest_dist
 
 # reflex evaluation function
-def reflex_eval(moves, players, food):
+def reflex_eval(moves, players, food, goal_reached):
     vals = []
     players_copy = copy.deepcopy(players)
     for i in moves:
@@ -237,7 +248,10 @@ def reflex_eval(moves, players, food):
             tmp = -50000
         elif enemy2_dist == 2 or enemy2_dist == 2:
             tmp = -25000
-        goal_dist = manhattan_distance(players_copy[0], players[3]) * -10
+        if not goal_reached:
+            goal_dist = manhattan_distance(players_copy[0], players[3]) * -10
+        else:
+            goal_dist = 0
         # avoid divide by zero errors
         if enemy1_dist == 0:
             enemy1_dist = .01
@@ -303,35 +317,42 @@ def choose_move(moves, vals):
     return moves[vals.index(max(vals))]
         
 # todo
-def minimax_eval(grid, players, food, walls):
+def minimax_eval(grid, players, food, walls, goal_reached):
     vals = []
     moves = get_moves(players[0], grid, walls)
     for i in moves:
-        tmp = get_min_score(grid, players, food, walls, 1)
+        tmp = get_min_score(grid, players, food, walls, 1, goal_reached)
         vals.append(tmp)
     # print(vals)
     choices = []
     for i in vals:
-        if i == max(vals):
-            i += random.randint(0,10000)
-        choices.append(i)
+        # if i == max(vals):
+        #     i += random.randint(0,10000)
+        # choices.append(i)
+        if isinstance(i, float):
+            # if i > best_score:
+            #     best_score = val
+            choices.append(i)
+        else:
+            for i in range(len(vals)):
+                if vals[i] == max(vals):
+                    choices.append(vals[i])
     # return moves[choices.index(max(choices))]
-    return moves[choices.index(choices[0])]
+    return moves[choices.index(choices[0])], goal_reached
 
 # todo    
-def get_max_score(grid, players, food, walls, depth):
+def get_max_score(grid, players, food, walls, depth, goal_reached):
     player_moves = get_moves(players[0], grid, walls)
     if depth == 5:
-        return reflex_eval(player_moves, players, food)
+        return reflex_eval(player_moves, players, food, goal_reached), goal_reached
     # else:
-        # return get_min_score(grid, players, food, walls, depth-1)
+        # return get_min_score(grid, players, food, walls, depth-1, goal_reached)
     best_score = float('-inf')
     for i in range(len(player_moves)):
         pred_players = copy.deepcopy(players)
         pred_players[0] = player_moves[i]
-        val = get_min_score(grid, pred_players, food, walls, depth+1)
+        val, goal_reached = get_min_score(grid, pred_players, food, walls, depth+1, goal_reached)
         # print(val)
-        # print(type(val))
         if isinstance(val, float):
             if val > best_score:
                 best_score = val
@@ -341,13 +362,13 @@ def get_max_score(grid, players, food, walls, depth):
                     best_score = val[i]
             # best_score = max(val)
     
-    return best_score
+    return best_score, goal_reached
  
 # todo 
-def get_min_score(grid, players, food, walls, depth):
+def get_min_score(grid, players, food, walls, depth, goal_reached):
     if depth == 5:
         moves = get_moves(players[0], grid, walls)
-        return reflex_eval(moves, players, food)
+        return reflex_eval(moves, players, food, goal_reached), goal_reached
     enemy1_moves = get_moves(players[1], grid, walls)
     enemy2_moves = get_moves(players[2], grid, walls)
     
@@ -371,15 +392,15 @@ def get_min_score(grid, players, food, walls, depth):
     pred_players[1] = closest_pos1
     pred_players[2] = closest_pos2
     
-    return get_max_score(grid, pred_players, food, walls, depth+1)
+    return get_max_score(grid, pred_players, food, walls, depth+1, goal_reached)
 
-def moveMinimax(grid, players, food, walls, score):
+def moveMinimax(grid, players, food, walls, score, goal_reached):
     # player
     player_moves = get_moves(players[0], grid, walls)
-    vals = minimax_eval(grid, players, food, walls)
+    vals, goal_reached = minimax_eval(grid, players, food, walls, goal_reached)
     players[0] = choose_move(player_moves, vals)
     
-    score = check_score(grid, players, food, score)
+    score, goal_reached = check_score(grid, players, food, score, goal_reached)
     printGrid(grid, players, food, score)
     # time.sleep(.1)
 
@@ -387,7 +408,7 @@ def moveMinimax(grid, players, food, walls, score):
     enemy_moves = get_moves(players[1], grid, walls)
     players[1] = enemyAgentMoveWithProb(enemy_moves, players[1], players[0])
     
-    score = check_score(grid, players, food, score)
+    score, goal_reached = check_score(grid, players, food, score, goal_reached)
     printGrid(grid, players, food, score)
     # time.sleep(.1)
     
@@ -395,7 +416,7 @@ def moveMinimax(grid, players, food, walls, score):
     enemy_moves = get_moves(players[2], grid, walls)
     players[2] = enemyAgentMoveWithProb(enemy_moves, players[2], players[0])
     
-    score = check_score(grid, players, food, score)
+    score, goal_reached = check_score(grid, players, food, score, goal_reached)
     printGrid(grid, players, food, score)
     # time.sleep(.1)
     
@@ -403,11 +424,11 @@ def moveMinimax(grid, players, food, walls, score):
     goal_moves = get_moves(players[3], grid, walls)
     players[3] = goal_moves[random.randint(0,len(goal_moves)-1)]
         
-    score = check_score(grid, players, food, score) 
+    score, goal_reached = check_score(grid, players, food, score, goal_reached) 
     printGrid(grid, players, food, score)
     # time.sleep(.1)
         
-    return players, food, score
+    return players, food, score, goal_reached
     
 
 def value(grid, players, food, walls, depth, whos_turn):
