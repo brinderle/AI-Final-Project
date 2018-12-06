@@ -13,7 +13,7 @@ def main():
     layoutFile = sys.argv[1] + ".lay"
     grid, players, food, walls = setupLayout(layoutFile)
     printGrid(grid, players, food, score)
-    for i in range(50):
+    for i in range(500):
         players, food, score = move(grid, players, food, walls, score)
 
 def readGrid(layoutFile):
@@ -131,7 +131,7 @@ def move(grid, players, food, walls, score):
     
     score = check_score(grid, players, food, score)
     printGrid(grid, players, food, score)
-    time.sleep(.1)
+    # time.sleep(.1)
 
     # first enemy
     enemy_moves = get_moves(players[1], grid, walls)
@@ -139,7 +139,7 @@ def move(grid, players, food, walls, score):
     
     score = check_score(grid, players, food, score)
     printGrid(grid, players, food, score)
-    time.sleep(.1)
+    # time.sleep(.1)
     
     # second enemy
     enemy_moves = get_moves(players[2], grid, walls)
@@ -147,7 +147,7 @@ def move(grid, players, food, walls, score):
     
     score = check_score(grid, players, food, score)
     printGrid(grid, players, food, score)
-    time.sleep(.1)
+    # time.sleep(.1)
     
     # goal
     goal_moves = get_moves(players[3], grid, walls)
@@ -155,7 +155,7 @@ def move(grid, players, food, walls, score):
         
     score = check_score(grid, players, food, score) 
     printGrid(grid, players, food, score)
-    time.sleep(.1)
+    # time.sleep(.1)
         
     return players, food, score
     
@@ -192,7 +192,7 @@ def check_score(grid, players, food, score):
         score += 25
         food.remove(players[0])
         printGrid(grid, players, food, score)
-        time.sleep(.1)
+        # time.sleep(.1)
         return score
     else:
         score -= .25
@@ -248,7 +248,7 @@ def reflex_eval(moves, players, food):
 def choose_move(moves, vals):
     print(moves)
     print(vals)
-    time.sleep(1)    
+    # time.sleep(1)    
     if vals.count(max(vals)) > 1:
         choices = []
         for i in range(len(vals)):
@@ -256,10 +256,10 @@ def choose_move(moves, vals):
                 choices.append(moves[i])
         print(choices, " ...choosing...")
         print(choices[random.randint(0,len(choices)-1)])
-        time.sleep(1)
+        # time.sleep(1)
         return choices[random.randint(0,len(choices)-1)]
     print(moves[vals.index(max(vals))])
-    time.sleep(1)
+    # time.sleep(1)
     return moves[vals.index(max(vals))]
         
 # todo
