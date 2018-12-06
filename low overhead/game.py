@@ -10,9 +10,55 @@ size = 10
 def main():     
     grid, players, food = setup(size)
     score = 0
+    layoutFile = sys.argv[1] + ".lay"
+    grid, players, food, walls = setupLayout(layoutFile)
     printGrid(grid, players, food, score)
     for i in range(50):
-        players, food, score = move(grid, players, food, score)
+        players, food, score = move(grid, players, food, walls, score)
+
+def readGrid(layoutFile):
+    with open(layoutFile) as layout:
+        rows = layout.readlines()
+        print(rows)
+
+def getLayout(name):
+    matrix = tryToLoad("layouts/" + name)
+    return matrix
+
+def tryToLoad(fullname):
+    if (not os.path.exists(fullname)): return None
+    f = open(fullname)
+    print(f)
+    Matrix = [line.strip() for line in f]
+    f.close()
+    return Matrix
+
+def setupLayout(layoutFile):
+    grid = getLayout(layoutFile)
+    food = []
+    players = [(0,0), (0,0), (0,0), (0,0)]
+    walls = []
+    for i in range(len(grid)):
+        grid[i] = list(grid[i])
+        for j in range(len(grid[i])):
+            if grid[i][j] == '.':
+                food.append((i,j))
+                grid[i][j] = ' '
+            elif grid[i][j] == 'P':
+                players[0] = (i,j)
+                grid[i][j] = ' '
+            elif grid[i][j] == 'E':
+                players[1] = (i,j)
+                grid[i][j] = ' '
+            elif grid[i][j] == 'F':
+                players[2] = (i,j)
+                grid[i][j] = ' '
+            elif grid[i][j] == 'G':
+                players[3] = (i,j)
+                grid[i][j] = ' '
+            elif grid[i][j] == "%":
+                walls.append((i,j))
+    return grid, players, food, walls
         
 # randomly generates food and player locations     
 def setup(size):
@@ -77,9 +123,9 @@ def printGrid(grid, players, food, score):
        
 # moves all players except for the main agent
 # currently all moves are random
-def move(grid, players, food, score):
+def move(grid, players, food, walls, score):
     # player
-    player_moves = get_moves(players[0])
+    player_moves = get_moves(players[0], grid, walls)
     vals = reflex_eval(player_moves, players, food)
     players[0] = choose_move(player_moves, vals)
     
@@ -88,7 +134,7 @@ def move(grid, players, food, score):
     time.sleep(.1)
 
     # first enemy
-    enemy_moves = get_moves(players[1])
+    enemy_moves = get_moves(players[1], grid, walls)
     players[1] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
     
     score = check_score(grid, players, food, score)
@@ -96,7 +142,7 @@ def move(grid, players, food, score):
     time.sleep(.1)
     
     # second enemy
-    enemy_moves = get_moves(players[2])
+    enemy_moves = get_moves(players[2], grid, walls)
     players[2] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
     
     score = check_score(grid, players, food, score)
@@ -104,7 +150,7 @@ def move(grid, players, food, score):
     time.sleep(.1)
     
     # goal
-    goal_moves = get_moves(players[3])
+    goal_moves = get_moves(players[3], grid, walls)
     players[3] = goal_moves[random.randint(0,len(goal_moves)-1)]
         
     score = check_score(grid, players, food, score) 
@@ -114,14 +160,15 @@ def move(grid, players, food, score):
     return players, food, score
     
 # determines legal moves for a player
-def get_moves(player):
+def get_moves(player, grid, walls):
     moves = [(0,1), (0,-1), (1,0), (-1,0)]
     ret = []
     for i in moves:
         tmp = [player, i]
         val = (sum(e[0] for e in tmp), sum(e[1] for e in tmp))
-        if val[0] >= 0 and val[0] < size and val[1] >= 0 and val[1] < size:
-            ret.append(val)
+        if val[0] >= 0 and val[0] < len(grid) and val[1] >= 0 and val[1] < len(grid[0]):
+            if val not in walls:
+                ret.append(val)
     return ret
 
 # distance function
