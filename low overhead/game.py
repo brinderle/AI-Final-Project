@@ -135,7 +135,8 @@ def move(grid, players, food, walls, score):
 
     # first enemy
     enemy_moves = get_moves(players[1], grid, walls)
-    players[1] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
+    # players[1] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
+    players[1] = enemyAgentMoveWithProb(enemy_moves, players[1], players[0])
     
     score = check_score(grid, players, food, score)
     printGrid(grid, players, food, score)
@@ -143,7 +144,8 @@ def move(grid, players, food, walls, score):
     
     # second enemy
     enemy_moves = get_moves(players[2], grid, walls)
-    players[2] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
+    # players[2] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
+    players[2] = enemyAgentMoveWithProb(enemy_moves, players[2], players[0])
     
     score = check_score(grid, players, food, score)
     printGrid(grid, players, food, score)
@@ -220,7 +222,7 @@ def reflex_eval(moves, players, food):
             tmp_food.remove(i)
             in_food = 15   
         if len(tmp_food) != 0:
-            closest_dist = find_closest_food(players, food)
+            closest_dist = find_closest_food(players, food) * 10
                 
             # closest_dist = manhattan_distance(players[0], closest_food)
         else:
@@ -244,6 +246,33 @@ def reflex_eval(moves, players, food):
         vals.append(tmp)
     
     return vals
+
+def enemyAgentMoveWithProb(moves, enemy, player):
+    # get a random number between 0 and 1
+    probTowardsPlayer = .4
+    z = random.random()
+    if z < probTowardsPlayer:
+        legalScores = []
+        # change the position depending on the direction of the move
+        for move in moves:
+            score = manhattan_distance(move, player)
+            legalScores.append(score)
+        # find the best score or min distance, randomly choose a move with the best score if there are multiple
+        minDistance = 10000000000
+        bestMoves = []
+        for i in range(0, len(moves)):
+            if legalScores[i] < minDistance:
+                minDistance = legalScores[i]
+                bestMoves = [moves[i]]
+            elif legalScores[i] == minDistance:
+                bestMoves.append(moves[i])
+
+        randomBestIndex = random.randint(0,len(bestMoves)-1)
+        togo = bestMoves[randomBestIndex]
+    else:
+        y = random.randint(0,len(moves)-1)
+        togo = moves[y]
+    return togo
 
 def choose_move(moves, vals):
     print(moves)
