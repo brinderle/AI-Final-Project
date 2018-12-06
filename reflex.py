@@ -542,3 +542,63 @@ def minimaxAgentMove(agent, pos, wstate, dest_blocks, enemy_pos, enemy2_pos, goa
     elif action == "back":
         moveBack(agent)
     return
+
+
+
+def value(pos, player_ws, enemy_pos, enemy2_pos, enemy1_ws, enemy2_ws, goal_pos, dest_blocks, depth, whos_turn):
+    if depth == 3:
+        return evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks)
+
+    if whos_turn == "player":
+        return max_val(pos, player_ws, enemy_pos, enemy2_pos, enemy1_ws, enemy2_ws, goal_pos, dest_blocks, depth, whos_turn)
+    else:
+        return exp_value(pos, player_ws, enemy_pos, enemy2_pos, enemy1_ws, enemy2_ws, goal_pos, dest_blocks, depth, whos_turn)
+
+def max_val(pos, player_ws, enemy_pos, enemy2_pos, enemy1_ws, enemy2_ws, goal_pos, dest_blocks, depth, whos_turn):
+    v = -100000
+
+    legalMoves = getLegalPositions(pos, wstate)
+
+    for move in legalMoves:
+        whos_turn = "enemy"
+        v = max(v, value(move, player_ws, enemy_pos, enemy2_pos, enemy1_ws, enemy2_ws, goal_pos, dest_blocks, depth+1, whos_turn))
+
+    return v
+
+def exp_value(pos, player_ws, enemy_pos, enemy2_pos, enemy1_ws, enemy2_ws, goal_pos, dest_blocks, depth, whos_turn)
+    v = 0
+
+    legalMoves1 = getLegalPositions(enemy_pos, enemy1_ws)
+    legalMoves2 = getLegalPositions(enemy_pos2, enemy2_ws)
+
+    closest_dist1 = 10000
+    closest_dist2 = 10000
+
+    for position in legalMoves1:
+        dist = manhattan_distance(enemy_pos, pos)
+        if dist < closestDist:
+            closestDist1 = dist
+            closestDistPosition1 = position
+    for position in legalMoves2:
+        dist = manhattan_distance(enemy2_pos, pos)
+        if dist < closestDist2:
+            closestDist2 = dist
+            closestDistPosition2 = position
+
+    for moves_1 in legalMoves1:
+        for moves_2 in legalMoves2:
+            if moves_1 == closestDistPosition1:
+                p1 = 0.4
+            else:
+                p1 = 0.6
+            if moves_2 == closestDistPosition2:
+                p2 = 0.4
+            else:
+                p2 = 0.6
+
+            whos_turn = "player"
+
+            v += p1*p2*value(pos, player_ws, moves_1, moves_2, enemy1_ws, enemy2_ws, goal_pos, dest_blocks, depth, whos_turn)
+
+
+
