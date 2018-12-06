@@ -13,8 +13,8 @@ def main():
     layoutFile = sys.argv[1] + ".lay"
     grid, players, food, walls = setupLayout(layoutFile)
     printGrid(grid, players, food, score)
-    for i in range(500):
-        players, food, score = move(grid, players, food, walls, score)
+    # for i in range(500):
+    players, food, score = expectimove(grid, players, food, walls, score)
 
 def readGrid(layoutFile):
     with open(layoutFile) as layout:
@@ -320,5 +320,112 @@ def get_min_score(moves, players, food, depth):
     
     return get_max_score(moves, pred_players, food, depth-1)
     
+
+def value(grid, players, food, walls, depth, whos_turn):
+    if depth == 3:
+        moves = get_moves(players[0], grid, walls)
+        vals = reflex_eval(moves, players, food)
+        
+        best_score = max(vals)
+        print(best_score)
+        # best_score = -100000000
+        # for i in range(len(vals)):
+        #     if vals[i] > best_score:
+        #         best_score = vals[i]
+
+        return (best_score, vals)
+
+
+    if whos_turn == "player":
+        return max_val(grid, players, food, walls, depth, whos_turn)
+    else:
+        return exp_value(grid, players, food, walls, depth, whos_turn)
+
+def max_val(grid, players, food, walls, depth, whos_turn):
+    v = -100000
+
+    legalMoves = get_moves(players[0], grid, walls)
+
+    for move in legalMoves:
+        whos_turn = "enemy"
+        players[0] = move
+        v = max(v, value(grid, players, food, walls, depth+1, whos_turn))
+
+    return v
+
+def exp_value(grid, players, food, walls, depth, whos_turn):
+    v = 0
+
+    legalMoves1 = get_moves(players[1], grid, walls)
+    legalMoves2 = get_moves(players[2], grid, walls)
+
+    closestDist = 10000
+    closestDist2 = 10000
+
+    for position in legalMoves1:
+        dist = manhattan_distance(players[1], players[0])
+        if dist < closestDist:
+            closestDist1 = dist
+            closestDistPosition1 = position
+    for position in legalMoves2:
+        dist = manhattan_distance(players[2], players[0])
+        if dist < closestDist2:
+            closestDist2 = dist
+            closestDistPosition2 = position
+
+    for moves_1 in legalMoves1:
+        for moves_2 in legalMoves2:
+            if moves_1 == closestDistPosition1:
+                p1 = 0.4
+            else:
+                p1 = 0.6
+            if moves_2 == closestDistPosition2:
+                p2 = 0.4
+            else:
+                p2 = 0.6
+
+            whos_turn = "player"
+            players[1] = moves_1
+            players[2] = moves_2
+            v += p1*p2*value(grid, players, food, walls, depth+1, whos_turn)
+
+            return v
+
+
+def expectimove(grid, players, food, walls, score):
+    player_moves = get_moves(players[0], grid, walls)
+    vals = value(grid, players, food, walls, 0, "player")
+    players[0] = choose_move(player_moves, vals)
+    
+    score = check_score(grid, players, food, score)
+    printGrid(grid, players, food, score)
+    time.sleep(.5)
+
+    # first enemy
+    enemy_moves = get_moves(players[1], grid, walls)
+    players[1] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
+    
+    score = check_score(grid, players, food, score)
+    printGrid(grid, players, food, score)
+    time.sleep(.5)
+    
+    # second enemy
+    enemy_moves = get_moves(players[2], grid, walls)
+    players[2] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
+    
+    score = check_score(grid, players, food, score)
+    printGrid(grid, players, food, score)
+    time.sleep(.5)
+    
+    # goal
+    goal_moves = get_moves(players[3], grid, walls)
+    players[3] = goal_moves[random.randint(0,len(goal_moves)-1)]
+        
+    score = check_score(grid, players, food, score) 
+    printGrid(grid, players, food, score)
+    time.sleep(.5)
+        
+    return players, food, score
+
 if __name__ == '__main__':
     main()
