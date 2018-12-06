@@ -292,10 +292,10 @@ def choose_move(moves, vals):
     return moves[vals.index(max(vals))]
         
 # todo
-def minimax_eval(moves, players, food):
+def minimax_eval(grid, moves, players, food, walls):
     vals = [0]
     for i in moves:
-        tmp = get_min_score(moves, players, food, 7)
+        tmp = get_min_score(grid, moves, players, food, walls, 7)
         vals.append(tmp)
     print(vals)
     choices = []
@@ -306,26 +306,26 @@ def minimax_eval(moves, players, food):
     return moves[choices.index(max(choices))]
 
 # todo    
-def get_max_score(moves, players, food, depth):
+def get_max_score(grid, moves, players, food, walls, depth):
     if depth == 3:
-        return evalfuncReflexTwoEnemies(pos, enemy_pos, enemy2_pos, goal_pos, dest_blocks)
+        return reflex_eval(moves, players, food)
     else:
-        return get_min_score(moves, players, food, depth-1)
-    # player_moves = get_moves(players[0])
-    # best_score = float('-inf')
-    # for i in player_moves:
-        # val = get_min_score(moves, players, food, depth-1)
-        # if val > best_score:
-            # best_score = val
+        return get_min_score(grid, moves, players, food, walls, depth-1)
+    player_moves = get_moves(players[0], grid, walls)
+    best_score = float('-inf')
+    for i in player_moves:
+        val = get_min_score(moves, players, food, walls, depth-1)
+        if val > best_score:
+            best_score = val
     
     return best_score
  
 # todo 
-def get_min_score(moves, players, food, depth):
+def get_min_score(grid, moves, players, food, walls, depth):
     if depth == 3:
         return reflex_eval(moves, players, food)
-    enemy1_moves = get_moves(players[1])
-    enemy2_moves = get_moves(players[2])
+    enemy1_moves = get_moves(players[1], grid, moves)
+    enemy2_moves = get_moves(players[2], grid, moves)
     
     closest_dist1 = math.inf
     closest_dist2 = math.inf
