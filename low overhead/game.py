@@ -3,10 +3,11 @@ import time
 import copy
 import os
 import math
+import sys
 
 size = 10
 
-def main():
+def main():     
     grid, players, food = setup(size)
     score = 0
     printGrid(grid, players, food, score)
@@ -79,7 +80,8 @@ def printGrid(grid, players, food, score):
 def move(grid, players, food, score):
     # player
     player_moves = get_moves(players[0])
-    players[0] = reflex_eval(player_moves, players, food)
+    vals = reflex_eval(player_moves, players, food)
+    players[0] = choose_move(player_moves, vals)
     
     score = check_score(grid, players, food, score)
     printGrid(grid, players, food, score)
@@ -121,7 +123,7 @@ def get_moves(player):
         if val[0] >= 0 and val[0] < size and val[1] >= 0 and val[1] < size:
             ret.append(val)
     return ret
-    
+
 # distance function
 def manhattan_distance(start, end):
     sx, sy = start
@@ -193,16 +195,26 @@ def reflex_eval(moves, players, food):
         tmp += in_food
         tmp += goal_dist
         vals.append(tmp)
+    
+    return vals
+
+def choose_move(moves, vals):
+    print(moves)
+    print(vals)
+    time.sleep(1)    
     if vals.count(max(vals)) > 1:
         choices = []
-        for i in vals:
-            if i == max(vals):
-                choices.append(i)
-        time.sleep(.2)
-        return moves[random.randint(0,len(choices)-1)]
-    time.sleep(.2)
+        for i in range(len(vals)):
+            if vals[i] == max(vals):
+                choices.append(moves[i])
+        print(choices, " ...choosing...")
+        print(choices[random.randint(0,len(choices)-1)])
+        time.sleep(1)
+        return choices[random.randint(0,len(choices)-1)]
+    print(moves[vals.index(max(vals))])
+    time.sleep(1)
     return moves[vals.index(max(vals))]
-
+        
 # todo
 def minimax_eval(moves, players, food):
     vals = [0]
