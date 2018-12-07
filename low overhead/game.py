@@ -14,9 +14,11 @@ def main():
     layoutFile = sys.argv[1] + ".lay"
     grid, players, food, walls = setupLayout(layoutFile)
     printGrid(grid, players, food, score)
+    # for i in range(500):
+    #     players, food, score = expectimove(grid, players, food, walls, score)
     goal_reached = False
     for i in range(500):
-        players, food, score, goal_reached = move(grid, players, food, walls, score, goal_reached)
+        players, food, score, goal_reached = expectimove(grid, players, food, walls, score, goal_reached)
 
 def readGrid(layoutFile):
     with open(layoutFile) as layout:
@@ -431,10 +433,10 @@ def moveMinimax(grid, players, food, walls, score, goal_reached):
     return players, food, score, goal_reached
     
 
-def value(grid, players, food, walls, depth, moves, whos_turn):
+def value(grid, players, food, walls, depth, moves, whos_turn, goal_reached):
     if depth == 3:
         legalMoves = get_moves(players[0], grid, walls)
-        vals = reflex_eval(legalMoves, players, food)
+        vals = reflex_eval(legalMoves, players, food, goal_reached)
         
         best_score = max(vals)
         # print(best_score)
@@ -447,11 +449,11 @@ def value(grid, players, food, walls, depth, moves, whos_turn):
 
 
     if whos_turn == "player":
-        return max_val(grid, players, food, walls, depth, moves, whos_turn)
+        return max_val(grid, players, food, walls, depth, moves, whos_turn, goal_reached)
     else:
-        return exp_value(grid, players, food, walls, depth, moves, whos_turn)
+        return exp_value(grid, players, food, walls, depth, moves, whos_turn, goal_reached)
 
-def max_val(grid, players, food, walls, depth, moves, whos_turn):
+def max_val(grid, players, food, walls, depth, moves, whos_turn, goal_reached):
     v = -100000
 
     legalMoves = get_moves(players[0], grid, walls)
@@ -459,11 +461,11 @@ def max_val(grid, players, food, walls, depth, moves, whos_turn):
     for move in legalMoves:
         whos_turn = "enemy"
         players[0] = move
-        v = max(v, value(grid, players, food, walls, depth+1, moves, whos_turn))
+        v = max(v, value(grid, players, food, walls, depth+1, moves, whos_turn, goal_reached))
 
     return v
 
-def exp_value(grid, players, food, walls, depth, moves, whos_turn):
+def exp_value(grid, players, food, walls, depth, moves, whos_turn, goal_reached):
     v = 0
 
     legalMoves1 = get_moves(players[1], grid, walls)
@@ -497,35 +499,35 @@ def exp_value(grid, players, food, walls, depth, moves, whos_turn):
             whos_turn = "player"
             players[1] = moves_1
             players[2] = moves_2
-            v += p1*p2*value(grid, players, food, walls, depth+1, moves, whos_turn)
+            v += p1*p2*value(grid, players, food, walls, depth+1, moves, whos_turn, goal_reached)
 
             return v
 
 
-def expectimove(grid, players, food, walls, score):
+def expectimove(grid, players, food, walls, score, goal_reached):
     player_moves = get_moves(players[0], grid, walls)
     best_move = player_moves[0]
     best_score = -10000000
 
     for i in range(len(player_moves)):
-        vals = value(grid, players, food, walls, 0, player_moves[i], "player")
+        vals = value(grid, players, food, walls, 0, player_moves[i], "player", goal_reached)
         if vals > best_score:
             best_score = vals
             best_move = player_moves[i]
-
-    print(best_move)
+    print(score,"1")
+    # print(best_move)
     players[0] = best_move
     # players[0] = choose_move(player_moves, vals)
-    
-    score = check_score(grid, players, food, score)
+    print(score)
+    score, goal_reached = check_score(grid, players, food, score, goal_reached)
     printGrid(grid, players, food, score)
     time.sleep(.1)
-
+    print(score,"2")
     # first enemy
     enemy_moves = get_moves(players[1], grid, walls)
     players[1] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
     
-    score = check_score(grid, players, food, score)
+    score, goal_reached = check_score(grid, players, food, score, goal_reached)
     printGrid(grid, players, food, score)
     time.sleep(.1)
     
@@ -533,7 +535,7 @@ def expectimove(grid, players, food, walls, score):
     enemy_moves = get_moves(players[2], grid, walls)
     players[2] = enemy_moves[random.randint(0,len(enemy_moves)-1)]
     
-    score = check_score(grid, players, food, score)
+    score, goal_reached = check_score(grid, players, food, score, goal_reached)
     printGrid(grid, players, food, score)
     time.sleep(.1)
     
@@ -541,11 +543,11 @@ def expectimove(grid, players, food, walls, score):
     goal_moves = get_moves(players[3], grid, walls)
     players[3] = goal_moves[random.randint(0,len(goal_moves)-1)]
         
-    score = check_score(grid, players, food, score) 
+    score, goal_reached = check_score(grid, players, food, score, goal_reached) 
     printGrid(grid, players, food, score)
     time.sleep(.1)
         
-    return players, food, score
+    return players, food, score, goal_reached
 
 if __name__ == '__main__':
     main()
