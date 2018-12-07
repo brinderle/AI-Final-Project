@@ -19,7 +19,7 @@ def main():
     #     players, food, score = expectimove(grid, players, food, walls, score)
     goal_reached = False
     for i in range(500):
-        players, food, score, goal_reached = MinimaxMove(grid, players, food, walls, score, goal_reached)
+        players, food, score, goal_reached = moveMinimax(grid, players, food, walls, score, goal_reached)
 
 def readGrid(layoutFile):
     with open(layoutFile) as layout:
